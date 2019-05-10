@@ -8,25 +8,14 @@ char hcms_screen[SCR_SIZE];
 
 static ctrl_reg0_t def_ctrl_r0;
 static ctrl_reg1_t def_ctrl_r1;
-static tEffectMode	effectMode;
 
-uint8_t	uBatteryChrgAnim = 0;
-int8_t	uScrollY = 0;
-int8_t	uBlink = 0; 
-uint8_t	uWaitCnt = 10;
 osThreadId hcms2915TaskHandle;
  
-void	HCMS_Init()
-{	
-	effectMode.r1_blink = 0;
-	effectMode.r2_blink = 0;
-	effectMode.r3_blink = 0;
-	effectMode.r3_scroll = 0;
-	effectMode.rh_blink = 0;
-	
+void	
+HCMS_Init() {	
 
 	def_ctrl_r0.brightness = (pwm_brightness_t)Flash_Settings()->brightness;
-	def_ctrl_r0.brightness = (pwm_brightness_t)15;
+	def_ctrl_r0.brightness = (pwm_brightness_t)5;
 	def_ctrl_r0.peak_current = DEFAULT_PEAK_CURRENT;
 	def_ctrl_r0.sleep_mode = 1;
 	def_ctrl_r0.reg = 0;
@@ -35,10 +24,6 @@ void	HCMS_Init()
 	def_ctrl_r1.edo_prescaler = 0;
 	def_ctrl_r1.reserved = 0;
 	def_ctrl_r1.reg = 1;
-	
-	uBlink = 0;
-	uWaitCnt = 0;
-	uBatteryChrgAnim = 0;
 	
 	HCMS_Reset();
 	HCMS_CtrlMode();
@@ -87,108 +72,39 @@ void HCMS_Ctrl_Register(uint8_t data)
 	HCMS_Put_Byte(data);
 	HCMS_Disable();
 }
-void HCMS_Put_Byte(uint8_t	outByte)
-{
-	__IO HAL_StatusTypeDef  hStatus;
-	
-	hStatus = HAL_SPI_Transmit(&hspi1,(uint8_t*)&outByte,sizeof(uint8_t),100);
+void 
+HCMS_Put_Byte(uint8_t	outByte) {
+
+	HAL_SPI_Transmit(&hspi1,(uint8_t*)&outByte,sizeof(uint8_t),100);
 }
 
+void 
+HCMS_RawPixels(uint8_t *buf, int sz) {
 
-
-void HCMS_RawPixels(uint8_t *buf, int sz)
-{
-	uBlink++;
-	if(uBlink > BLINK_ON_TIME)uBlink = BLINK_OFF_TIME;
-		
-	
-	
-	if(uWaitCnt >= STOP_TIME){	
-		uScrollY--;
-		if(uScrollY < -SHIFT_SIZE){
-			Graphic_ScrollChangeCallback();
-			uScrollY = SHIFT_SIZE;
-		}
-		if(uScrollY == 0)uWaitCnt = 0;
-		
-	}
-	else
-		uWaitCnt++;
-	
 	HCMS_DataMode();
 	HCMS_Enable();
-	for(int i=0; i < sz; i++)
-	{
-		if(effectMode.r1_blink){
-			if(i<10){
-				if(uBlink > 0)HCMS_Put_Byte(buf[i]);
-				else HCMS_Put_Byte(0);				
-			}
-			else{
-				HCMS_Put_Byte(buf[i]);
-			}
-		}
-		else if(effectMode.r2_blink){
-			if(i>=15 && i<25){
-				if(uBlink > 0)HCMS_Put_Byte(buf[i]);
-				else HCMS_Put_Byte(0);				
-			}
-			else{
-				HCMS_Put_Byte(buf[i]);
-			}			
-		}
-		else if(effectMode.r3_blink){
-			if(i>=30){
-				if(uBlink > 0)HCMS_Put_Byte(buf[i]);
-				else HCMS_Put_Byte(0);				
-			}
-			else{
-				HCMS_Put_Byte(buf[i]);
-			}			
-		}
-		else if(effectMode.r3_scroll){
-			if(i>=30){
-				
-				if(uScrollY >= -7 && uScrollY <=7){
-				if(uScrollY < 0)
-					HCMS_Put_Byte(buf[i]<< (-uScrollY));
-				else
-					HCMS_Put_Byte(buf[i]>> uScrollY );
-				}
-			}
-			else
-				HCMS_Put_Byte(buf[i]);
-		}
-		else if(effectMode.rh_blink){
-			if(i>=20){
-				if(uBlink > 0)HCMS_Put_Byte(buf[i]);
-				else HCMS_Put_Byte(0);				
-			}
-			else{
-				HCMS_Put_Byte(buf[i]);
-			}			
-		}
-		
-		else
-			HCMS_Put_Byte(buf[i]);
+	for(int i=0; i < sz; i++) {
+		HCMS_Put_Byte(buf[i]);
 	}
 	HCMS_Disable();
 }
 
-void HCMS_Clear()
-{
+void 
+HCMS_Clear() {
+
 	memset(hcms_screen,0,sizeof(uint8_t) * SCR_SIZE);
-	
 }
 
-void HCMS_Bright(pwm_brightness_t br)
-{
+void 
+HCMS_Bright(pwm_brightness_t br) {
+
 	def_ctrl_r0.brightness = br;
 	HCMS_Ctrl_Register(def_ctrl_r0.byte);
 }
 
-void HCMS_BrightChange()
-{
+void 
+HCMS_BrightChange() {
+
 	Flash_Settings()->brightness++;
 	
 	if(Flash_Settings()->brightness > PWM_BRIGHT_100)
@@ -197,8 +113,9 @@ void HCMS_BrightChange()
 	HCMS_Bright((pwm_brightness_t)Flash_Settings()->brightness);
 }
 
-void HCMS_PutStr(char *str)
-{
+void 
+HCMS_PutStr(char *str) {
+
 	uint16_t ind = 0;
 	uint16_t	bufPos = 0;
 	
@@ -216,105 +133,24 @@ void HCMS_PutStr(char *str)
 	}
 }
 
-void HCMS_On(uint8_t On)
-{
+void 
+HCMS_On(uint8_t On) {
+
 	  def_ctrl_r0.sleep_mode = !On;
 		HCMS_Ctrl_Register(def_ctrl_r0.byte);
 }
-void HCMS_SetBrightness(pwm_brightness_t	brightness)
-{
+
+void 
+HCMS_SetBrightness(pwm_brightness_t	brightness) {
+
 	def_ctrl_r0.brightness = brightness;
 	HCMS_Ctrl_Register(def_ctrl_r0.byte);
 }
-void HCMS_Effect(eEffectType eEffect)
-{
-	switch(eEffect)
-	{
-		case EFFECT_OFF:{
-			effectMode.mode_byte = 0;
-		}break;
-		
-		case BLINK_R1:{
-			effectMode.mode_byte = 0;
-			effectMode.r1_blink = 1;
-		}break;
-		case BLINK_R2:{
-			effectMode.mode_byte = 0;
-			effectMode.r2_blink = 1;
-		}break;
-		case BLINK_R3:{
-			effectMode.mode_byte = 0;
-			effectMode.r3_blink = 1;
-		}break;
-		
-		case SCROLL_R3:{
-			effectMode.mode_byte = 0;
-			effectMode.r3_scroll = 1;
-		}break;
-		
-		case BLINK_RH:{
-			effectMode.mode_byte = 0;
-			effectMode.rh_blink = 1;
-		}break;		
-	}
-}
-void HCMS_Process(void const * argument)
-{	
-	while(1)
-	{
-		if(System_GetChargeState() == CHARGE_ON && System_GetState() == SYS_TIME)
-		{  
-		
-				if(uBatteryChrgAnim >= 0 && uBatteryChrgAnim <= 10){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x41;
-					hcms_screen[27] = 0x41;
-					hcms_screen[28] = 0x41;
-					hcms_screen[29] = 0x7E;					
-				}
-				else if(uBatteryChrgAnim > 10 && uBatteryChrgAnim <= 20){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x61;
-					hcms_screen[27] = 0x61;
-					hcms_screen[28] = 0x61;
-					hcms_screen[29] = 0x7E;					
-				}
-				else if(uBatteryChrgAnim > 20 && uBatteryChrgAnim <= 30){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x71;
-					hcms_screen[27] = 0x71;
-					hcms_screen[28] = 0x71;
-					hcms_screen[29] = 0x7E;					
-				}
-				else if(uBatteryChrgAnim > 30 && uBatteryChrgAnim <= 40){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x79;
-					hcms_screen[27] = 0x79;
-					hcms_screen[28] = 0x79;
-					hcms_screen[29] = 0x7E;							
-				}
-				else if(uBatteryChrgAnim > 40 && uBatteryChrgAnim <= 50){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x7D;
-					hcms_screen[27] = 0x7D;
-					hcms_screen[28] = 0x7D;
-					hcms_screen[29] = 0x7E;							
-				}
-				else if(uBatteryChrgAnim > 50 && uBatteryChrgAnim <= 60){
-					hcms_screen[25] = 0x7E;
-					hcms_screen[26] = 0x7F;
-					hcms_screen[27] = 0x7F;
-					hcms_screen[28] = 0x7F;
-					hcms_screen[29] = 0x7E;					
-				}
-        else
-					uBatteryChrgAnim = 0;
-				uBatteryChrgAnim++;
-			}
-			
-			
-		
-		
+
+void 
+HCMS_Process(void const * argument) {
+
+	while(1) {		
 		HCMS_RawPixels(((uint8_t*)&hcms_screen),SCR_SIZE);
 		osDelay(50);
 	}

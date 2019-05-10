@@ -48,6 +48,7 @@ Src/system.c \
 Src/stm32l0xx_it.c \
 Src/stm32l0xx_hal_msp.c \
 Src/stm32l0xx_hal_timebase_TIM.c \
+Src/System/spi.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rtc.c \
@@ -77,7 +78,8 @@ Middlewares/Third_Party/FreeRTOS/Source/list.c \
 Middlewares/Third_Party/FreeRTOS/Source/queue.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Middlewares/Third_Party/FreeRTOS/Source/timers.c \
-Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c  
+Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
+
 
 # ASM sources
 ASM_SOURCES =  \
@@ -135,6 +137,7 @@ AS_INCLUDES =  \
 # C includes
 C_INCLUDES =  \
 -IInc \
+-IInc/System \
 -IDrivers/STM32L0xx_HAL_Driver/Inc \
 -IDrivers/STM32L0xx_HAL_Driver/Inc/Legacy \
 -IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0 \

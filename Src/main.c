@@ -7,38 +7,24 @@
 #include "main.h"
 #include "stm32l0xx_hal.h"
 #include "cmsis_os.h"
-
-/* USER CODE BEGIN Includes */
 #include "hcms2915.h"
 #include "system.h"
 #include "graphic.h"
 #include "flash.h"
 #include "adc.h"
-/* USER CODE END Includes */
-
-/* Private variables ---------------------------------------------------------*/
-
-
-/* Variable used to get converted value */
-__IO uint32_t uwADCxConvertedValue = 0;
 
 SPI_HandleTypeDef hspi1;
 osThreadId defaultTaskHandle;
 
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void StartDefaultTask(void const * argument);
+
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 
-void StartDefaultTask(void const * argument);
+int
+main(void) {
 
-int main(void)
-{
   HAL_Init();
 	
   SystemClock_Config();
@@ -46,21 +32,22 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
 
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 0x200);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   osKernelStart();
 }
-void SystemPower_Config(void)
-{
+void 
+SystemPower_Config(void) {
+
 	__HAL_RCC_PWR_CLK_ENABLE();
 
   HAL_PWREx_EnableUltraLowPower();
   HAL_PWREx_EnableFastWakeUp();
 }
 
-void SystemClock_Config(void)
-{
+void 
+SystemClock_Config(void) {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
@@ -124,12 +111,9 @@ void SystemClock_Config(void)
 	SystemPower_Config();
 }
 
+static void 
+MX_SPI1_Init(void){
 
-/* SPI1 init function */
-static void MX_SPI1_Init(void)
-{
-
-  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
@@ -149,15 +133,8 @@ static void MX_SPI1_Init(void)
 
 }
 
-/** Configure pins as 
-        * Analog 
-        * Input 
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
-static void MX_GPIO_Init(void)
-{
+static void 
+MX_GPIO_Init(void) {
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -199,8 +176,9 @@ static void MX_GPIO_Init(void)
 
 }
 
-void StartDefaultTask(void const * argument)
-{	
+void 
+StartDefaultTask(void const * argument) {
+
 	Flash_Init();
 	HCMS_Init();
 	System_Init();
@@ -210,8 +188,7 @@ void StartDefaultTask(void const * argument)
 	/* Check and handle if the system was resumed from StandBy mode */ 
   if(__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB); // Clear Standby flag 
     
-  while(1)
-  {
+  while(1) {
 		System_Process();
 		Graphic_Process();
 		
@@ -219,66 +196,25 @@ void StartDefaultTask(void const * argument)
   }
 }
 
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM22 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
+void 
+HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-  /* USER CODE END Callback 0 */
   if (htim->Instance == TIM22) {
+    //Timebase timer for FreeRTOS
     HAL_IncTick();
   }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
 }
 
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @param  file: The file name as string.
-  * @param  line: The line in file as a number.
-  * @retval None
-  */
-void _Error_Handler(char *file, int line)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  while(1)
-  {
+void 
+_Error_Handler(char *file, int line) {
+  while(1){
+    
   }
-  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t* file, uint32_t line)
-{ 
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-}
+  void assert_failed(uint8_t* file, uint32_t line)
+  { 
+
+  }
 #endif /* USE_FULL_ASSERT */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

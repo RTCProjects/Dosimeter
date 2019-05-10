@@ -124,7 +124,6 @@ void HCMS_Update(void);
 void HCMS_Clear(void);
 void HCMS_On(uint8_t On);
 void HCMS_Brightness(void);
-void HCMS_Effect(eEffectType eEffect);
 void HCMS_BrightChange(void);
 void HCMS_Process(void const * argument);
 

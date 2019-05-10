@@ -8,6 +8,7 @@
 #define LO_PRESS_TIME	100
 #define HI_PRESS_TIME 1000
 #define CHRG_WAIT_TIME	50
+
 typedef enum
 {
 	SYS_TIME			 = 0x01,
@@ -33,12 +34,6 @@ typedef enum
 	SELECT_EXIT 			= 0x05,
 }eSettingsState;
 
-typedef enum
-{
-	CHARGE_OFF = 0x00,
-	CHARGE_ON = 0x01
-}eChargeState;
-
 #define FIRST_SETTING SELECT_TIME
 #define LAST_SETTING 	SELECT_EXIT
 
@@ -54,5 +49,5 @@ RTC_DateTypeDef *System_GetRTCDate(void);
 
 eSystemState		System_GetState(void);
 eSettingsState	System_GetSettingsState(void);
-eChargeState		System_GetChargeState(void);
+
 #endif
